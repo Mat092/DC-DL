@@ -8,21 +8,34 @@ from tensorflow.keras.models import Sequential, Model
 from tensorflow.keras.optimizers import RMSprop
 from tensorflow.keras.callbacks import ModelCheckpoint
 
-from NumPyNet.utils import data_to_timesteps
-
 import numpy as np
 
 from translate import to_categorical
 from translate import from_categorical
 from translate import one_hot_to_text
 
+def data_to_timesteps(data, steps, shift=1):
+
+  X = data.reshape(data.shape[0], -1)
+
+  Npoints, features = X.shape
+  stride0, stride1  = X.strides
+
+  shape   = (Npoints - steps*shift, steps, features)
+  strides = (shift*stride0, stride0, stride1)
+
+  X = np.lib.stride_tricks.as_strided(data, shape=shape, strides=strides)
+  y = data[steps:]
+
+  return X, y
+
+
 name       = 'divine_comedy'
 steps      = 50
 train_size = int(1e4)
 
 data = np.load('data/' + name + '.npy')
-X    = data_to_timesteps(data, steps=steps)
-y    = np.concatenate([X[1:, 0, :], X[-1:, 0, :]], axis=0)
+X, y = data_to_timesteps(data, steps=steps)
 
 size, steps, features = X.shape
 
