@@ -29,9 +29,8 @@ def data_to_timesteps(data, steps, shift=1):
 
   return X, y
 
-
 name       = 'divine_comedy'
-steps      = 50
+steps      = 100
 train_size = int(1e4)
 
 data = np.load('data/' + name + '.npy')
@@ -43,6 +42,7 @@ inp       = Input(shape=X.shape[1:])
 lstm1     = LSTM(units=128)(inp)
 dense1    = Dense(units=features, activation='softmax')(lstm1)
 model     = Model(inputs=[inp], outputs=[dense1])
+
 optimizer = RMSprop(lr=0.01, rho=.9)
 model.compile(loss='categorical_crossentropy', optimizer=optimizer)
 
@@ -51,5 +51,5 @@ checkpoint     = ModelCheckpoint(filepath, monitor='loss', verbose=1, save_best_
 callbacks_list = [checkpoint]
 
 print('********START TRAINING*********')
-model.fit(X[:train_size], y[:train_size], batch_size=32, epochs=5, verbose=1, callbacks=callbacks_list)
+model.fit(X[:train_size], y[:train_size], batch_size=128, epochs=20, verbose=1, callbacks=callbacks_list)
 print('********END TRAINING***********')
