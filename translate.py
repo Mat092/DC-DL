@@ -8,6 +8,21 @@ import pickle
 
 import numpy as np
 
+def data_to_timesteps(data, steps, shift=1):
+
+  X = data.reshape(data.shape[0], -1)
+
+  Npoints, features = X.shape
+  stride0, stride1  = X.strides
+
+  shape   = (Npoints - steps*shift, steps, features)
+  strides = (shift*stride0, stride0, stride1)
+
+  X = np.lib.stride_tricks.as_strided(data, shape=shape, strides=strides)
+  y = data[steps:]
+
+  return X, y
+
 def to_categorical (arr):
   '''
   Converts a vector of labels into one-hot encoding format
@@ -70,12 +85,16 @@ def translations (filename):
 
   return char2int, int2char
 
-def text_to_one_hot (filename):
+def text_to_one_hot (filename, dictionaries=None):
   '''
   Translate the file into a one hot encoded one
   '''
 
-  char2int, int2char = translations (filename)
+  if dictionaries is None:
+    char2int, int2char = translations (filename)
+
+  else:
+    char2int, int2char = dictionaries
 
   # TODO: faster method
   encoding = np.array([])
@@ -101,21 +120,4 @@ def one_hot_to_text (arr, int2char, filename):
 
 
 if __name__ == '__main__':
-
-  filename = './data/prova.txt'
-
-  translation, char2int, int2char = text_to_one_hot(filename)
-
-  # save translations and alphabet dictionaries:
-  np.save('data/prova', translation)
-  pickle.dump(char2int, open('data/prova2int', 'wb'))
-  pickle.dump(int2char, open('data/int2prova', 'wb'))
-
-  # now we can load them:
-  traslation = np.load('data/prova.npy')
-  char2int = pickle.load(open('data/prova2int', 'rb'))
-  int2char = pickle.load(open('data/int2prova', 'rb'))
-
-  # now we can write a file that's equal to prova.txt
-  one_hot_to_text(translation, int2char, 'data/prova2.txt')
-  # and now the translation is complete
+  pass
