@@ -14,7 +14,22 @@ import sys
 import pickle
 
 
-def generate_text_from_model (modelname, out_filename=None, int2char=None, n_char=5000, seed=None):
+def sample(preds, temperature=1.0):
+  '''
+  lower temperature == lower diversity
+  from :
+  https://github.com/keras-team/keras/blob/master/examples/lstm_text_generation.py
+  '''
+
+  # helper function to sample an index from a probability array
+  preds = np.asarray(preds).astype('float64')
+  preds = np.log(preds) / temperature
+  exp_preds = np.exp(preds)
+  preds = exp_preds / np.sum(exp_preds)
+  probas = np.random.multinomial(1, preds, 1)
+  return np.argmax(probas)
+
+def generate_text_from_model (modelname, out_filename=None, int2char=None, n_char=5000, seed=None, temperature=1e-5):
   '''
   given a model, generate text and save it
 
@@ -40,8 +55,8 @@ def generate_text_from_model (modelname, out_filename=None, int2char=None, n_cha
     x_pred = np.reshape(text[-steps:], (1, -1, features))
     preds  = model.predict(x_pred, verbose=0)[0]
 
-    # selection based only on higher values TODO: temperature
-    index = np.argmax(preds)
+    # selection based only on higher values, now with temperature!
+    index = sample(preds, temperature=temperature)
 
     # one hot encoded version
     code  = np.zeros(shape=features)
@@ -49,6 +64,8 @@ def generate_text_from_model (modelname, out_filename=None, int2char=None, n_cha
 
     # stacking with previous text
     text = np.vstack([text, code])
+
+  print(f'Finished generation of {n_char} characters')
 
   # save to out_filename if given
   if out_filename is not None and int2char is not None:
@@ -59,10 +76,12 @@ def generate_text_from_model (modelname, out_filename=None, int2char=None, n_cha
 if __name__ == '__main__':
 
   savefile  = 'data/divine_comedy_out.txt'
-  modelname = 'cfg/weights.20.0.92.hdf5'
+  modelname = 'cfg/weights.20.0.33.hdf5'
 
   with open('data/int2char.pickle', 'rb') as f:
     int2char = pickle.load(open('data/int2char.pickle', 'rb'))
 
-  text = generate_text_from_model(modelname, n_char=5000)
+  text = generate_text_from_model(modelname, n_char=5000, temperature=0.5)
+
+  print('saving')
   one_hot_to_text(text, int2char, savefile)
