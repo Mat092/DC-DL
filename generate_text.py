@@ -75,13 +75,15 @@ def generate_text_from_model (modelname, out_filename=None, int2char=None, n_cha
 
 if __name__ == '__main__':
 
-  savefile  = 'data/divine_comedy_out.txt'
-  modelname = 'cfg/weights.20.0.33.hdf5'
+  name = 'weights.10.1.48'
+
+  savefile  = 'data/' + name + '.txt'
+  modelfile = 'cfg/' + name + '.hdf5'
 
   with open('data/int2char.pickle', 'rb') as f:
     int2char = pickle.load(open('data/int2char.pickle', 'rb'))
 
-  text = generate_text_from_model(modelname, n_char=5000, temperature=0.5)
+  text = generate_text_from_model(modelfile, n_char=10000, temperature=0.5)
 
   print('saving')
   one_hot_to_text(text, int2char, savefile)

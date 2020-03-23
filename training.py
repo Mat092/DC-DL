@@ -7,7 +7,7 @@ import numpy as np
 
 from translate import data_to_timesteps
 
-def continue_training (data_filename, model_name, trainsize=None, epochs=10, batch_size=100):
+def continue_training (data_filename, model_name, start_point=None, trainsize=None, epochs=10, batch_size=100):
   '''
   keep training an already existing model.
   '''
@@ -18,8 +18,10 @@ def continue_training (data_filename, model_name, trainsize=None, epochs=10, bat
 
   if trainsize is None:
     data  = np.load(data_filename)
-  elif isinstance(trainsize, int):
-    data = np.load(data_filename)[:trainsize]
+
+  elif isinstance(trainsize, int) and start_point is not None:
+    data = np.load(data_filename)[start_point:start_point+trainsize]
+
   else :
     raise ValueError('variable trainsize must be int or None')
 
@@ -36,10 +38,11 @@ def continue_training (data_filename, model_name, trainsize=None, epochs=10, bat
 
 if __name__ == '__main__':
 
-  model_name = 'cfg/weights.20.0.92.hdf5'
-  trainsize=10000
-  epochs=20
+  model_name = 'cfg/weights.20.0.33.hdf5'
+  trainsize=100000
+  start_point = trainsize
+  epochs=10
   batch_size=500
   data_filename = './data/divine_comedy.npy'
 
-  model, history = continue_training(data_filename, model_name, trainsize, epochs=epochs, batch_size=batch_size)
+  model, history = continue_training(data_filename, model_name, start_point=start_point, trainsize=trainsize, epochs=epochs, batch_size=batch_size)
